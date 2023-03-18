@@ -1,3 +1,3 @@
 
-rootProject.name = "KotlinMinecraftPlugin"
+rootProject.name = "Smash"
 
