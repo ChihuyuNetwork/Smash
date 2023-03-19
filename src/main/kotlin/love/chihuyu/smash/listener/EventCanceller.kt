@@ -10,7 +10,10 @@ object EventCanceller: Listener {
 
     @EventHandler
     fun onWeather(e: WeatherChangeEvent) {
-        e.isCancelled = true
+        if (e.world.hasStorm()) {
+            e.world.setStorm(false)
+            e.world.isThundering = false
+        }
     }
 
     @EventHandler

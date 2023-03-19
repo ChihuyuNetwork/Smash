@@ -1,4 +1,35 @@
 name: @name@
 main: @mainPackage@
 version: @version@
-depend: [ CommandAPI ]
+commands:
+
+  smash:
+    permission: smash.command.smash
+
+  smashconfig:
+    aliases:
+      - sc
+    permission: smash.command.smashconfig
+
+  smashmap:
+    aliases:
+      - sm
+    permission: smash.command.smashmap
+
+permissions:
+
+  smash.command.*:
+    default: op
+    children:
+      smash.command.smash: true
+      smash.command.smashconfig: true
+      smash.command.smashmap: true
+
+  smash.command.smash:
+    default: op
+
+  smash.command.smashconfig:
+    default: op
+
+  smash.command.smashmap:
+    default: op
