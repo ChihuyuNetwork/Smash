@@ -71,6 +71,7 @@ object SmashCommand : Command("smash") {
                                     it.health = .0
                                     it.world.setGameRuleValue("showDeathMessages", "true")
                                     it.spigot().respawn()
+                                    it.playSound(it.location, Sound.LEVEL_UP, .7f, 1f)
                                 }
                                 SmashAPI.brokenBlocks.forEach {
                                     sender.world.getBlockAt(it.key).setType(it.value.itemType, false)
@@ -78,7 +79,7 @@ object SmashCommand : Command("smash") {
                                     sender.world.getBlockAt(it.key).state.update(true)
                                 }
                                 SmashAPI.brokenBlocks.clear()
-                                SmashPlugin.server.broadcast(TextComponent("$prefix 勝者は${scores.toList().sortedByDescending { it.first }[0].second}です！"))
+                                SmashPlugin.server.broadcast(TextComponent("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！"))
                                 gameTimer = null
                             }
 
