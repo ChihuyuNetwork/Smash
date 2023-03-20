@@ -1,3 +1,5 @@
+
+
 plugins {
     kotlin("jvm") version "1.8.10"
     id("com.github.johnrengelman.shadow") version "8.1.0"
@@ -13,10 +15,14 @@ val pluginVersion: String by project.ext
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.inventivetalent.org/content/groups/public/")
+    maven("https://repo.hirosuke.me/repository/maven-public/")
 }
 
 dependencies {
     compileOnly("org.github.paperspigot:paperspigot-api:1.8.8-R0.1-SNAPSHOT")
+    compileOnly("org.inventivetalent:bossbarapi:2.4.3-SNAPSHOT")
+    compileOnly("love.chihuyu:TimerAPI:1.0.0")
     implementation("org.yaml:snakeyaml:2.0")
     implementation(kotlin("stdlib"))
 }
@@ -35,11 +41,16 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
         from(sourceSets.main.get().resources.srcDirs) {
-            filter(org.apache.tools.ant.filters.ReplaceTokens::class, mapOf("tokens" to mapOf(
-                "version" to project.version.toString(),
-                "name" to project.name,
-                "mainPackage" to "love.chihuyu.${project.name.lowercase()}.${project.name}Plugin"
-            )))
+            filter(
+                org.apache.tools.ant.filters.ReplaceTokens::class,
+                mapOf(
+                    "tokens" to mapOf(
+                        "version" to project.version.toString(),
+                        "name" to project.name,
+                        "mainPackage" to "love.chihuyu.${project.name.lowercase()}.${project.name}Plugin"
+                    )
+                )
+            )
             filteringCharset = "UTF-8"
         }
     }
@@ -48,7 +59,7 @@ tasks {
         val loweredProject = project.name.lowercase()
         exclude("org/slf4j/**")
         relocate("org.snakeyaml", "love.chihuyu.$loweredProject.lib.org.snakeyaml")
-        relocate("kotlin", "love.chihuyu.$loweredProject.lib.kotlin")
+        archiveClassifier.set("")
     }
 }
 

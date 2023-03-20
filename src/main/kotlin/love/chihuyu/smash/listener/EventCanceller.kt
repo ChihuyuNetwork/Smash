@@ -6,14 +6,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.weather.WeatherChangeEvent
 
-object EventCanceller: Listener {
+object EventCanceller : Listener {
 
     @EventHandler
     fun onWeather(e: WeatherChangeEvent) {
-        if (e.world.hasStorm()) {
-            e.world.setStorm(false)
-            e.world.isThundering = false
-        }
+        e.isCancelled = true
     }
 
     @EventHandler

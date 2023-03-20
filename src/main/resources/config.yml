@@ -1,2 +1,3 @@
 lobby-spawn: null
 nodelay: false
+gameDuration: 180
