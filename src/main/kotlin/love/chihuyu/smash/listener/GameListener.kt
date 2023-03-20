@@ -145,15 +145,13 @@ object GameListener : Listener {
             player.spigot().respawn()
             player.world.playSound(player.location, Sound.EXPLODE, 1f, 1f)
             SmashAPI.velocities[player.uniqueId] = 0
-            val killer = SmashAPI.lastAttackers[player.uniqueId]
-            if (killer != player.uniqueId && killer != null) {
+            val killer = SmashAPI.lastAttackers[player.uniqueId] ?: player.uniqueId
+            if (killer != player.uniqueId) {
                 SmashAPI.killCounts[killer] = SmashAPI.killCounts[killer]?.inc() ?: 1
                 val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
-                (
-                    mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
-                        displaySlot = DisplaySlot.PLAYER_LIST
-                    }
-                    ).getScore(Bukkit.getOfflinePlayer(killer)).score = SmashAPI.killCounts[killer] ?: 0
+                (mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
+                    displaySlot = DisplaySlot.PLAYER_LIST
+                }).getScore(Bukkit.getOfflinePlayer(killer)).score = SmashAPI.killCounts[killer] ?: 0
                 SmashPlugin.server.onlinePlayers.forEach {
                     it.scoreboard = mainScoreboard
                 }
