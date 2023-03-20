@@ -32,7 +32,6 @@ object SmashCommand : Command("smash") {
                                 inCountdown = false
                                 SmashPlugin.server.broadcast(TextComponent("$prefix ${ChatColor.BOLD}Game Start"))
                                 SmashPlugin.server.onlinePlayers.forEach {
-                                    it.playSound(it.location, Sound.ORB_PICKUP, 1f, 1f)
                                     it.maximumNoDamageTicks = if (SmashPlugin.config.getBoolean("nodelay")) 0 else 20
                                 }
                             }
@@ -83,7 +82,7 @@ object SmashCommand : Command("smash") {
                                 gameTimer = null
                             }
 
-                        Timer("Smash-Countdown", 5, 20)
+                        Timer("Smash-Countdown", 6, 20)
                             .start {
                                 SmashPlugin.server.onlinePlayers.forEachIndexed { index, player ->
                                     val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
@@ -92,8 +91,8 @@ object SmashCommand : Command("smash") {
                                             displaySlot = DisplaySlot.PLAYER_LIST
                                         }
                                         ).getScore(player.name).score = 0
-                                    player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }[(index.inc() % (SmashPlugin.server.onlinePlayers.size)) - 1])
-                                    player.gameMode = GameMode.ADVENTURE
+                                    player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }[index % map.getList("spawns").size.dec()])
+                                    player.gameMode = GameMode.SURVIVAL
                                 }
                                 inCountdown = true
                             }
@@ -101,7 +100,7 @@ object SmashCommand : Command("smash") {
                                 SmashPlugin.server.onlinePlayers.forEach {
                                     it.playSound(it.location, Sound.ORB_PICKUP, 1f, 1f)
                                 }
-                                SmashPlugin.server.broadcast(TextComponent("$prefix ${ChatColor.BOLD}${duration.inc() - elapsed}"))
+                                if (elapsed != 6L) SmashPlugin.server.broadcast(TextComponent("$prefix ${ChatColor.BOLD}${duration - elapsed}"))
                             }
                             .end {
                                 gameTimer!!.run()

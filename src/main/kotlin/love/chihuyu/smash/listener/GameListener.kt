@@ -9,10 +9,10 @@ import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.Sound
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.scoreboard.DisplaySlot
@@ -143,7 +143,7 @@ object GameListener : Listener {
         if (player.location.y <= 0) {
             player.health = .0
             player.spigot().respawn()
-            player.world.spawnEntity(player.location, EntityType.LIGHTNING)
+            player.world.playSound(player.location, Sound.EXPLODE, 1f, 1f)
             SmashAPI.velocities[player.uniqueId] = 0
             val killer = SmashAPI.lastAttackers[player.uniqueId]
             if (killer != player.uniqueId && killer != null) {
@@ -159,5 +159,15 @@ object GameListener : Listener {
                 }
             }
         }
+    }
+
+    @EventHandler
+    fun onBreak(e: BlockBreakEvent) {
+        if (gameTimer == null || inCountdown) {
+            e.isCancelled = true
+            return
+        }
+
+        SmashAPI.brokenBlocks[e.block.location] = e.block.state.data.clone()
     }
 }
