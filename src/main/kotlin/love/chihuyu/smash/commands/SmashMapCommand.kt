@@ -23,7 +23,7 @@ object SmashMapCommand : Command("smashmap") {
                         val list = (section.getConfigurationSection(args[1]).getList("spawns") as List<Vector>)
                         "$prefix ${args[1]}のスポーン地点一覧:\n${list.map { "${list.indexOf(it)}: $it\n" }}"
                     } catch (e: Throwable) {
-                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください"
+                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください (${e.message})"
                     }
                 )
             }
@@ -33,7 +33,7 @@ object SmashMapCommand : Command("smashmap") {
                         section.createSection(args[1])
                         "$prefix マップを追加しました: \"${args[1]}\""
                     } catch (e: Throwable) {
-                        "$prefix ${ChatColor.RED}マップの追加に失敗しました"
+                        "$prefix ${ChatColor.RED}マップの追加に失敗しました (${e.message})"
                     }
                 )
                 mapsConfig.save(mapsFile)
@@ -44,7 +44,7 @@ object SmashMapCommand : Command("smashmap") {
                         section.set(args[1], null)
                         "$prefix マップを削除しました: \"${args[1]}\""
                     } catch (e: Throwable) {
-                        "$prefix ${ChatColor.RED}マップの削除に失敗しました"
+                        "$prefix ${ChatColor.RED}マップの削除に失敗しました (${e.message})"
                     }
                 )
                 mapsConfig.save(mapsFile)
@@ -53,11 +53,11 @@ object SmashMapCommand : Command("smashmap") {
                 sender.sendMessage(
                     try {
                         val map = section.getConfigurationSection(args[1])
-                        val list = (map.getList("spawns") as List<Vector>)
+                        val list = (map.getList("spawns") as? List<Vector> ?: mutableListOf()).toMutableList()
                         map.set("spawns", list.plus(sender.location.toVector()))
                         "$prefix スポーン地点をマップに追加しました"
                     } catch (e: Throwable) {
-                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください"
+                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください (${e.message})"
                     }
                 )
                 mapsConfig.save(mapsFile)
@@ -66,12 +66,12 @@ object SmashMapCommand : Command("smashmap") {
                 sender.sendMessage(
                     try {
                         val map = section.getConfigurationSection(args[1])
-                        val list = (map.getList("spawns") as List<Vector>).toMutableList()
+                        val list = (map.getList("spawns") as? List<Vector> ?: mutableListOf()).toMutableList()
                         list.removeAt(Integer.parseInt(args[2]))
                         map.set("spawns", list)
                         "$prefix スポーン地点をマップから削除しました"
                     } catch (e: Throwable) {
-                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください"
+                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください (${e.message})"
                     }
                 )
                 mapsConfig.save(mapsFile)

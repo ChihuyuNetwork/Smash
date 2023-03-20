@@ -5,6 +5,7 @@ import love.chihuyu.smash.commands.SmashCommand
 import love.chihuyu.smash.commands.SmashConfigCommand
 import love.chihuyu.smash.commands.SmashMapCommand
 import love.chihuyu.smash.listener.EventCanceller
+import love.chihuyu.smash.listener.GameListener
 import love.chihuyu.timerapi.timer.Timer
 import org.bukkit.ChatColor
 import org.bukkit.configuration.file.YamlConfiguration
@@ -17,7 +18,8 @@ class SmashPlugin : JavaPlugin() {
         val prefix = "${ChatColor.DARK_RED}${ChatColor.BOLD}[Smash]${ChatColor.RESET}"
         lateinit var mapsFile: File
         lateinit var mapsConfig: YamlConfiguration
-        lateinit var gameTimer: Timer
+        var gameTimer: Timer? = null
+        var inCountdown = false
     }
 
     init {
@@ -39,7 +41,8 @@ class SmashPlugin : JavaPlugin() {
         saveDefaultConfig()
 
         listOf(
-            EventCanceller
+            EventCanceller,
+            GameListener
         ).forEach { server.pluginManager.registerEvents(it, this) }
 
         listOf(

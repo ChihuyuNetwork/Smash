@@ -15,14 +15,12 @@ val pluginVersion: String by project.ext
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.inventivetalent.org/content/groups/public/")
     maven("https://repo.hirosuke.me/repository/maven-public/")
 }
 
 dependencies {
     compileOnly("org.github.paperspigot:paperspigot-api:1.8.8-R0.1-SNAPSHOT")
-    compileOnly("org.inventivetalent:bossbarapi:2.4.3-SNAPSHOT")
-    compileOnly("love.chihuyu:TimerAPI:1.0.0")
+    compileOnly("love.chihuyu:TimerAPI:1.1.0")
     implementation("org.yaml:snakeyaml:2.0")
     implementation(kotlin("stdlib"))
 }

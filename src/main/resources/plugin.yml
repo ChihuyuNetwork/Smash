@@ -1,6 +1,6 @@
 name: @name@
 main: @mainPackage@
-version: @version@
+version: 1
 commands:
 
   smash:
