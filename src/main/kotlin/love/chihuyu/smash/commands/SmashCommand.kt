@@ -92,7 +92,7 @@ object SmashCommand : Command("smash") {
                                             displaySlot = DisplaySlot.PLAYER_LIST
                                         }
                                         ).getScore(player.name).score = 0
-                                    player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }[index % (SmashPlugin.server.onlinePlayers.toList().lastIndex)])
+                                    player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }[(index.inc() % (SmashPlugin.server.onlinePlayers.size)) - 1])
                                     player.gameMode = GameMode.ADVENTURE
                                 }
                                 inCountdown = true
