@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.util.Vector
@@ -167,5 +168,12 @@ object GameListener : Listener {
         }
 
         SmashAPI.brokenBlocks[e.block.location] = e.block.state.data.clone()
+    }
+
+    @EventHandler
+    fun onJoin(e: PlayerJoinEvent) {
+        val player = e.player
+        player.health = .0
+        player.spigot().respawn()
     }
 }
