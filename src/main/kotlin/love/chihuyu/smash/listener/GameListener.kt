@@ -4,7 +4,7 @@ import love.chihuyu.smash.SmashAPI
 import love.chihuyu.smash.SmashPlugin.Companion.SmashPlugin
 import love.chihuyu.smash.SmashPlugin.Companion.gameTimer
 import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
-import love.chihuyu.timerapi.utils.Schedular.sync
+import love.chihuyu.timerapi.timer.Timer
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.scoreboard.DisplaySlot
@@ -32,10 +33,8 @@ object GameListener : Listener {
         val player = e.entity as? Player ?: return
         val damager = e.damager
 
-        SmashAPI.velocities[player.uniqueId] = SmashAPI.velocities[player.uniqueId]?.plus(nextInt(1, 7)) ?: 5
-        try {
-            player.velocity = damager.location.direction.multiply((SmashAPI.velocities[player.uniqueId] ?: 1) / 100).setY(0.6)
-        } catch (_: Throwable) { }
+        SmashAPI.velocities[player.uniqueId] = SmashAPI.velocities[player.uniqueId]?.plus(nextInt(4, 10)) ?: 5
+        player.velocity = damager.location.direction.multiply((SmashAPI.velocities[player.uniqueId] ?: 1) / 50.0).setY(0.5)
         SmashAPI.lastAttackers[player.uniqueId] = damager.uniqueId
 
         val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
@@ -45,75 +44,76 @@ object GameListener : Listener {
         objective.getScore(player.name).score = (SmashAPI.velocities[player.uniqueId] ?: 0)
         player.scoreboard = mainScoreboard
 
-        SmashPlugin.sync(3) {
-            if ((SmashAPI.velocities[player.uniqueId] ?: 0) > 50 &&
-                (
-                    !player.world.getBlockAt(player.location.apply { this.x -= .5 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.x += .5 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.z -= .5 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.x += .5 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
-                    )
-            ) {
-                mapOf(
-                    player.world.getBlockAt(player.location.apply { this.x -= .5 }) to mapOf(
-                        player.world.getBlockAt(player.location.apply { this.z -= .5 }) to listOf(
-                            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                            player.world.getBlockAt(player.location.apply { this.y })
+        Timer("smash-velocity-${player.uniqueId}", 10, 1)
+            .tick {
+                if ((SmashAPI.velocities[player.uniqueId] ?: 0) > 50 &&
+                    (
+                            !player.world.getBlockAt(player.location.apply { this.x -= .5 }).isEmpty ||
+                                    !player.world.getBlockAt(player.location.apply { this.x += .5 }).isEmpty ||
+                                    !player.world.getBlockAt(player.location.apply { this.z -= .5 }).isEmpty ||
+                                    !player.world.getBlockAt(player.location.apply { this.x += .5 }).isEmpty ||
+                                    !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
+                                    !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
+                            )
+                ) {
+                    mapOf(
+                        player.world.getBlockAt(player.location.apply { this.x -= .5 }) to mapOf(
+                            player.world.getBlockAt(player.location.apply { this.z -= .5 }) to listOf(
+                                player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                                player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                                player.world.getBlockAt(player.location.apply { this.y })
+                            ),
+                            player.world.getBlockAt(player.location.apply { this.z }) to listOf(
+                                player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                                player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                                player.world.getBlockAt(player.location.apply { this.y })
+                            ),
+                            player.world.getBlockAt(player.location.apply { this.z += .5 }) to listOf(
+                                player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                                player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                                player.world.getBlockAt(player.location.apply { this.y })
+                            )
                         ),
-                        player.world.getBlockAt(player.location.apply { this.z }) to listOf(
-                            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                            player.world.getBlockAt(player.location.apply { this.y })
-                        ),
-                        player.world.getBlockAt(player.location.apply { this.z += .5 }) to listOf(
-                            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                            player.world.getBlockAt(player.location.apply { this.y })
+                        player.world.getBlockAt(player.location.apply { this.x += .5 }) to mapOf(
+                            player.world.getBlockAt(player.location.apply { this.z -= .5 }) to listOf(
+                                player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                                player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                                player.world.getBlockAt(player.location.apply { this.y })
+                            ),
+                            player.world.getBlockAt(player.location.apply { this.z }) to listOf(
+                                player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                                player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                                player.world.getBlockAt(player.location.apply { this.y })
+                            ),
+                            player.world.getBlockAt(player.location.apply { this.z += .5 }) to listOf(
+                                player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                                player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                                player.world.getBlockAt(player.location.apply { this.y })
+                            )
                         )
-                    ),
-                    player.world.getBlockAt(player.location.apply { this.x += .5 }) to mapOf(
-                        player.world.getBlockAt(player.location.apply { this.z -= .5 }) to listOf(
-                            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                            player.world.getBlockAt(player.location.apply { this.y })
-                        ),
-                        player.world.getBlockAt(player.location.apply { this.z }) to listOf(
-                            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                            player.world.getBlockAt(player.location.apply { this.y })
-                        ),
-                        player.world.getBlockAt(player.location.apply { this.z += .5 }) to listOf(
-                            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                            player.world.getBlockAt(player.location.apply { this.y })
-                        )
-                    )
-                ).forEach { (xBlock, z) ->
-                    if (!xBlock.isEmpty) {
-                        SmashAPI.brokenBlocks[xBlock.location] = xBlock.state.data.clone()
-                        xBlock.type = Material.AIR
-                        player.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
-                    }
-                    z.forEach { (zBlock, y) ->
-                        if (!zBlock.isEmpty) {
-                            SmashAPI.brokenBlocks[zBlock.location] = zBlock.state.data.clone()
-                            zBlock.type = Material.AIR
-                            player.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
+                    ).forEach { (xBlock, z) ->
+                        if (!xBlock.isEmpty) {
+                            SmashAPI.brokenBlocks[xBlock.location] = xBlock.state.data.clone()
+                            xBlock.type = Material.AIR
+                            player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
                         }
-                        y.forEach { yBlock ->
-                            if (!yBlock.isEmpty) {
-                                SmashAPI.brokenBlocks[yBlock.location] = yBlock.state.data.clone()
-                                yBlock.type = Material.AIR
-                                player.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
+                        z.forEach { (zBlock, y) ->
+                            if (!zBlock.isEmpty) {
+                                SmashAPI.brokenBlocks[zBlock.location] = zBlock.state.data.clone()
+                                zBlock.type = Material.AIR
+                                player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
+                            }
+                            y.forEach { yBlock ->
+                                if (!yBlock.isEmpty) {
+                                    SmashAPI.brokenBlocks[yBlock.location] = yBlock.state.data.clone()
+                                    yBlock.type = Material.AIR
+                                    player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
+                                }
                             }
                         }
                     }
                 }
-            }
-        }
+            }.run()
     }
 
     @EventHandler
@@ -149,6 +149,7 @@ object GameListener : Listener {
             val killer = SmashAPI.lastAttackers[player.uniqueId] ?: player.uniqueId
             if (killer != player.uniqueId) {
                 SmashAPI.killCounts[killer] = SmashAPI.killCounts[killer]?.inc() ?: 1
+                SmashAPI.lastAttackers.remove(player.uniqueId)
                 val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                 (mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
                     displaySlot = DisplaySlot.PLAYER_LIST
@@ -156,18 +157,23 @@ object GameListener : Listener {
                 SmashPlugin.server.onlinePlayers.forEach {
                     it.scoreboard = mainScoreboard
                 }
+
+                val objective = mainScoreboard.getObjective(DisplaySlot.BELOW_NAME) ?: mainScoreboard.registerNewObjective("%", "").apply {
+                    displaySlot = DisplaySlot.BELOW_NAME
+                }
+                objective.getScore(player.name).score = (SmashAPI.velocities[player.uniqueId] ?: 0)
+                player.scoreboard = mainScoreboard
             }
         }
     }
 
     @EventHandler
     fun onBreak(e: BlockBreakEvent) {
-        if (gameTimer == null || inCountdown) {
+        if ((gameTimer == null || inCountdown) && e.player.gameMode != GameMode.CREATIVE) {
             e.isCancelled = true
             return
         }
-
-        SmashAPI.brokenBlocks[e.block.location] = e.block.state.data.clone()
+        if (e.player.gameMode != GameMode.CREATIVE) SmashAPI.brokenBlocks[e.block.location] = e.block.state.data.clone()
     }
 
     @EventHandler
@@ -175,5 +181,23 @@ object GameListener : Listener {
         val player = e.player
         player.health = .0
         player.spigot().respawn()
+    }
+
+    @EventHandler
+    fun onDamage(e: EntityDamageEvent) {
+        val player = e.entity as? Player ?: return
+        if ((gameTimer == null || inCountdown) && player.gameMode != GameMode.CREATIVE) {
+            e.isCancelled = true
+            return
+        }
+
+        SmashAPI.velocities[player.uniqueId] = SmashAPI.velocities[player.uniqueId]?.plus(nextInt(4, 10)) ?: 5
+
+        val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
+        val objective = mainScoreboard.getObjective(DisplaySlot.BELOW_NAME) ?: mainScoreboard.registerNewObjective("%", "").apply {
+            displaySlot = DisplaySlot.BELOW_NAME
+        }
+        objective.getScore(player.name).score = (SmashAPI.velocities[player.uniqueId] ?: 0)
+        player.scoreboard = mainScoreboard
     }
 }

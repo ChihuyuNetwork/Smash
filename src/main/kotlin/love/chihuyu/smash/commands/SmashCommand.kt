@@ -7,7 +7,6 @@ import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.SmashPlugin.Companion.prefix
 import love.chihuyu.timerapi.timer.Timer
-import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.ChatColor
 import org.bukkit.GameMode
 import org.bukkit.Sound
@@ -30,7 +29,7 @@ object SmashCommand : Command("smash") {
                         gameTimer = Timer("Smash-Game", SmashPlugin.config.getLong("gameDuration"), 20)
                             .start {
                                 inCountdown = false
-                                SmashPlugin.server.broadcast(TextComponent("$prefix ${ChatColor.BOLD}Game Start"))
+                                SmashPlugin.server.broadcastMessage("$prefix ${ChatColor.BOLD}Game Start")
                                 SmashPlugin.server.onlinePlayers.forEach {
                                     it.maximumNoDamageTicks = if (SmashPlugin.config.getBoolean("nodelay")) 0 else 20
                                 }
@@ -79,7 +78,7 @@ object SmashCommand : Command("smash") {
                                     sender.world.getBlockAt(it.key).state.update(true)
                                 }
                                 SmashAPI.brokenBlocks.clear()
-                                SmashPlugin.server.broadcast(TextComponent("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！"))
+                                SmashPlugin.server.broadcastMessage("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！")
                                 gameTimer = null
                             }
 
@@ -101,7 +100,7 @@ object SmashCommand : Command("smash") {
                                 SmashPlugin.server.onlinePlayers.forEach {
                                     it.playSound(it.location, Sound.ORB_PICKUP, 1f, 1f)
                                 }
-                                if (elapsed != 6L) SmashPlugin.server.broadcast(TextComponent("$prefix ${ChatColor.BOLD}${duration - elapsed}"))
+                                if (elapsed != 6L) SmashPlugin.server.broadcastMessage("$prefix ${ChatColor.BOLD}${duration - elapsed}")
                             }
                             .end {
                                 gameTimer!!.run()

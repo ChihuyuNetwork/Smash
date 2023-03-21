@@ -14,12 +14,13 @@ val pluginVersion: String by project.ext
 
 repositories {
     mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.hirosuke.me/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly("org.github.paperspigot:paperspigot-api:1.8.8-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("love.chihuyu:TimerAPI:1.1.0")
     implementation("org.yaml:snakeyaml:2.0")
     implementation(kotlin("stdlib"))

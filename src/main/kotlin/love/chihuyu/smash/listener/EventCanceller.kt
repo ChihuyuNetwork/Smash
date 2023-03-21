@@ -35,6 +35,6 @@ object EventCanceller : Listener {
 
     @EventHandler
     fun onChange(e: BlockFromToEvent) {
-        e.isCancelled = gameTimer == null
+        e.isCancelled = true
     }
 }
