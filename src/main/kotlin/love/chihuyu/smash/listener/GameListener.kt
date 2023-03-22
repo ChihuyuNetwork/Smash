@@ -55,7 +55,7 @@ object GameListener : Listener {
             !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
             !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
 
-        Timer("smash-velocity-${player.uniqueId}", 10, 1)
+        Timer("Smash-Velocity-${player.uniqueId}", 10, 1)
             .tick {
                 if ((SmashAPI.velocities[player.uniqueId] ?: 0) > 50 && isNotEmptyAround()) {
                     mapOf(
