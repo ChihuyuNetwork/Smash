@@ -60,6 +60,7 @@ tasks {
         exclude("org/slf4j/**")
         relocate("kotlin", "love.chihuyu.$loweredProject.lib.kotlin")
         relocate("org.snakeyaml", "love.chihuyu.$loweredProject.lib.org.snakeyaml")
+        archiveClassifier.set("")
     }
 }
 
