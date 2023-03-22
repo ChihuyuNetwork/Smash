@@ -44,13 +44,6 @@ object SmashCommand : Command("smash") {
                                 objective.getScore("マップ: ${args[1]}").score = 1
                                 objective.getScore("残り時間 ${(duration - elapsed).floorDiv(60)}:${"%02d".format((duration - elapsed) % 60)}").score = 2
                                 objective.getScore(" ").score = 3
-                                SmashPlugin.server.onlinePlayers.forEach {
-                                    it.scoreboard = mainScoreboard
-                                }
-
-                                SmashPlugin.server.onlinePlayers.forEach {
-                                    it.setBedSpawnLocation((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }.random(), true)
-                                }
                             }
                             .end {
                                 val scores = mutableMapOf<Int, String>()
@@ -65,19 +58,10 @@ object SmashCommand : Command("smash") {
                                     scores[score.score] = score.entry
                                     SmashAPI.velocities[it.uniqueId] = 0
                                     SmashAPI.killCounts[it.uniqueId] = 0
-                                    it.setBedSpawnLocation(SmashPlugin.config.getVector("lobby-spawn").toLocation(sender.world), true)
-                                    it.world.setGameRuleValue("showDeathMessages", "false")
-                                    it.health = .0
-                                    it.world.setGameRuleValue("showDeathMessages", "true")
-                                    it.spigot().respawn()
+                                    it.teleport(SmashPlugin.config.getVector("lobby-spawn").toLocation(sender.world))
                                     it.playSound(it.location, Sound.LEVEL_UP, .7f, 1f)
                                 }
-                                SmashAPI.brokenBlocks.forEach {
-                                    sender.world.getBlockAt(it.key).setType(it.value.itemType, false)
-                                    sender.world.getBlockAt(it.key).state.rawData = it.value.data
-                                    sender.world.getBlockAt(it.key).state.update(true)
-                                }
-                                SmashAPI.brokenBlocks.clear()
+                                SmashAPI.currentMap = null
                                 SmashPlugin.server.broadcastMessage("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！")
                                 gameTimer = null
                             }
@@ -91,7 +75,8 @@ object SmashCommand : Command("smash") {
                                             displaySlot = DisplaySlot.PLAYER_LIST
                                         }
                                         ).getScore(player.name).score = 0
-                                    player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }[index % map.getList("spawns").size.dec()])
+                                    SmashAPI.currentMap = args[1]
+                                    player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }.random())
                                     player.gameMode = GameMode.SURVIVAL
                                 }
                                 inCountdown = true

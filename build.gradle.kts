@@ -1,5 +1,3 @@
-
-
 plugins {
     kotlin("jvm") version "1.8.10"
     id("com.github.johnrengelman.shadow") version "8.1.0"
@@ -17,11 +15,14 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots")
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.hirosuke.me/repository/maven-public/")
+    maven("https://maven.enginehub.org/repo/")
 }
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("love.chihuyu:TimerAPI:1.1.0")
+    compileOnly("com.sk89q.worldedit:worldedit-core:6.1.4-SNAPSHOT")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:6.1.4-SNAPSHOT")
     implementation("org.yaml:snakeyaml:2.0")
     implementation(kotlin("stdlib"))
 }
@@ -57,8 +58,8 @@ tasks {
     shadowJar {
         val loweredProject = project.name.lowercase()
         exclude("org/slf4j/**")
+        relocate("kotlin", "love.chihuyu.$loweredProject.lib.kotlin")
         relocate("org.snakeyaml", "love.chihuyu.$loweredProject.lib.org.snakeyaml")
-        archiveClassifier.set("")
     }
 }
 

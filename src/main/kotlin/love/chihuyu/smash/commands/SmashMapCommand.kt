@@ -76,15 +76,27 @@ object SmashMapCommand : Command("smashmap") {
                 )
                 mapsConfig.save(mapsFile)
             }
+            "setcenter" -> {
+                sender.sendMessage(
+                    try {
+                        val map = section.getConfigurationSection(args[1])
+                        map.set("center", sender.location.toVector())
+                        "$prefix マップの中心を設定しました"
+                    } catch (e: Throwable) {
+                        "$prefix ${ChatColor.RED}正しくコマンドを入力してください (${e.message})"
+                    }
+                )
+                mapsConfig.save(mapsFile)
+            }
         }
     }
 
     override fun onTabComplete(sender: CommandSender, label: String, args: Array<out String>): List<String> {
         val section = mapsConfig.getConfigurationSection("maps") ?: mapsConfig.createSection("maps")
         return when (args.size) {
-            1 -> listOf("list", "spawns", "create", "remove", "addspawn", "removespawn")
+            1 -> listOf("list", "spawns", "create", "remove", "addspawn", "removespawn", "setcenter")
             2 -> when (args[0]) {
-                "spawns", "remove", "addspawn", "removespawn" -> section.getKeys(false).toList()
+                "spawns", "remove", "addspawn", "removespawn", "setcenter" -> section.getKeys(false).toList()
                 else -> emptyList()
             }
             else -> emptyList()
