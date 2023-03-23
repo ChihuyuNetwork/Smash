@@ -13,7 +13,7 @@ import java.io.File
 import java.io.FileInputStream
 
 
-object SchematicRecovery {
+object SchematicRepair {
 
     fun recovery(map: String) {
         val file = File(SmashPlugin.dataFolder, "../WorldEdit/schematics/${map}.schematic")

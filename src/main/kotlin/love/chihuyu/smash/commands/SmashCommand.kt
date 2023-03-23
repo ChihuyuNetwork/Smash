@@ -6,7 +6,7 @@ import love.chihuyu.smash.SmashPlugin.Companion.gameTimer
 import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.SmashPlugin.Companion.prefix
-import love.chihuyu.smash.game.SchematicRecovery
+import love.chihuyu.smash.game.SchematicRepair
 import love.chihuyu.timerapi.timer.Timer
 import org.bukkit.ChatColor
 import org.bukkit.GameMode
@@ -65,7 +65,7 @@ object SmashCommand : Command("smash") {
                                     it.teleport(SmashPlugin.config.getVector("lobby-spawn").toLocation(sender.world))
                                     it.playSound(it.location, Sound.LEVEL_UP, .7f, 1f)
                                 }
-                                SchematicRecovery.recovery(args[1])
+                                SchematicRepair.recovery(args[1])
                                 SmashAPI.currentMap = null
                                 SmashPlugin.server.broadcastMessage("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！")
                                 gameTimer = null
