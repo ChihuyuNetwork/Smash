@@ -6,6 +6,7 @@ import love.chihuyu.smash.SmashPlugin.Companion.gameTimer
 import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.SmashPlugin.Companion.prefix
+import love.chihuyu.smash.game.SchematicRecovery
 import love.chihuyu.timerapi.timer.Timer
 import org.bukkit.ChatColor
 import org.bukkit.GameMode
@@ -25,6 +26,7 @@ object SmashCommand : Command("smash") {
                     try {
                         if (gameTimer != null) "$prefix ${ChatColor.RED}既にゲームは開始されています"
                         val map = mapsConfig.getConfigurationSection("maps.${args[1]}")
+                        if (map == null) "$prefix ${ChatColor.RED}マップが見つかりません"
                         if (map.getList("spawns").isEmpty()) "$prefix ${ChatColor.RED}スポーン地点が設定されていません"
                         if (map.getVector("center") == null) "$prefix ${ChatColor.RED}マップの中心が設定されていません"
 
@@ -63,6 +65,7 @@ object SmashCommand : Command("smash") {
                                     it.teleport(SmashPlugin.config.getVector("lobby-spawn").toLocation(sender.world))
                                     it.playSound(it.location, Sound.LEVEL_UP, .7f, 1f)
                                 }
+                                SchematicRecovery.recovery(args[1])
                                 SmashAPI.currentMap = null
                                 SmashPlugin.server.broadcastMessage("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！")
                                 gameTimer = null
