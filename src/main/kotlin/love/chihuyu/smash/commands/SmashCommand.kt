@@ -25,6 +25,7 @@ object SmashCommand : Command("smash") {
                     try {
                         if (gameTimer != null) "$prefix ${ChatColor.RED}既にゲームは開始されています"
                         val map = mapsConfig.getConfigurationSection("maps.${args[1]}")
+                        if (map.getList("spawns").isEmpty()) "$prefix ${ChatColor.RED}スポーン地点が設定されていません"
 
                         gameTimer = Timer("Smash-Game", SmashPlugin.config.getLong("gameDuration"), 20)
                             .start {
