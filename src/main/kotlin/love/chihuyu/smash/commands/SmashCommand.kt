@@ -55,10 +55,10 @@ object SmashCommand : Command("smash") {
                                     val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                                     mainScoreboard.getObjective(DisplaySlot.BELOW_NAME)?.unregister()
                                     val score = (
-                                            mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
-                                                displaySlot = DisplaySlot.PLAYER_LIST
-                                            }
-                                            ).getScore(it.name)
+                                        mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
+                                            displaySlot = DisplaySlot.PLAYER_LIST
+                                        }
+                                        ).getScore(it.name)
                                     scores[score.score] = score.entry
                                     SmashAPI.velocities[it.uniqueId] = 0
                                     SmashAPI.killCounts[it.uniqueId] = 0
@@ -77,10 +77,10 @@ object SmashCommand : Command("smash") {
                                 SmashPlugin.server.onlinePlayers.forEachIndexed { index, player ->
                                     val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                                     (
-                                            mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
-                                                displaySlot = DisplaySlot.PLAYER_LIST
-                                            }
-                                            ).getScore(player.name).score = 0
+                                        mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
+                                            displaySlot = DisplaySlot.PLAYER_LIST
+                                        }
+                                        ).getScore(player.name).score = 0
                                     SmashAPI.currentMap = args[1]
                                     player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }.random())
                                     player.gameMode = GameMode.SURVIVAL
@@ -106,14 +106,16 @@ object SmashCommand : Command("smash") {
                 )
             }
             "end" -> {
-                sender.sendMessage(try {
-                    if (gameTimer == null) "$prefix ${ChatColor.RED}ゲームは開始されていません"
-                    gameTimer!!.kill()
-                    gameTimer = null
-                    "$prefix ゲームを終了しました"
-                } catch (e: Throwable) {
-                    "$prefix ${ChatColor.RED}ゲーム終了に失敗しました (${e.message})"
-                })
+                sender.sendMessage(
+                    try {
+                        if (gameTimer == null) "$prefix ${ChatColor.RED}ゲームは開始されていません"
+                        gameTimer!!.kill()
+                        gameTimer = null
+                        "$prefix ゲームを終了しました"
+                    } catch (e: Throwable) {
+                        "$prefix ${ChatColor.RED}ゲーム終了に失敗しました (${e.message})"
+                    }
+                )
             }
         }
     }

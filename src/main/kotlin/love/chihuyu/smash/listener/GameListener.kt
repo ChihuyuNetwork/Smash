@@ -111,7 +111,7 @@ object GameListener : Listener {
         }
 
         if (player.location.y <= 0) {
-            val spawn = if (currentMap != null) (mapsConfig.getConfigurationSection("maps.${currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random() else SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world)
+            val spawn = if (currentMap != null) (mapsConfig.getConfigurationSection("maps.$currentMap").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random() else SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world)
             player.teleport(spawn)
             player.world.playSound(player.location, Sound.EXPLODE, 1f, 1f)
             SmashAPI.velocities[player.uniqueId] = 0
