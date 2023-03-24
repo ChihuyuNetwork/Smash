@@ -33,6 +33,17 @@ object ScoreboardUpdater {
     }
 
     fun updateAllKillCounts() {
-        SmashPlugin.server.onlinePlayers.forEach(this::updateKillCounts)
+        SmashPlugin.server.onlinePlayers.forEach { player ->
+            val killer = SmashAPI.lastAttackers[player.uniqueId] ?: player.uniqueId
+            val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
+            (
+                    mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
+                        displaySlot = DisplaySlot.PLAYER_LIST
+                    }
+                    ).getScore(Bukkit.getOfflinePlayer(killer)).score = SmashAPI.killCounts[killer] ?: 0
+            SmashPlugin.server.onlinePlayers.forEach {
+                it.scoreboard = mainScoreboard
+            }
+        }
     }
 }

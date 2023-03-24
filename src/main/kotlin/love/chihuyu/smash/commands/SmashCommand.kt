@@ -1,6 +1,7 @@
 package love.chihuyu.smash.commands
 
 import love.chihuyu.smash.SmashAPI
+import love.chihuyu.smash.SmashAPI.currentMap
 import love.chihuyu.smash.SmashPlugin.Companion.SmashPlugin
 import love.chihuyu.smash.SmashPlugin.Companion.gameTimer
 import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
@@ -75,6 +76,10 @@ object SmashCommand : Command("smash") {
                         TimerAPI.build("Smash-Countdown", 6, 20) {
                             start {
                                 SmashPlugin.server.onlinePlayers.forEachIndexed { index, player ->
+                                    SmashPlugin.server.onlinePlayers.forEach {
+                                        player.showPlayer(it)
+                                        it.showPlayer(player)
+                                    }
                                     val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                                     (
                                         mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
@@ -111,8 +116,13 @@ object SmashCommand : Command("smash") {
                         if (gameTimer == null) "$prefix ${ChatColor.RED}ゲームは開始されていません"
                         gameTimer!!.kill()
                         gameTimer = null
+                        if (currentMap != null) {
+                            SchematicRepair.recovery(currentMap!!)
+                            currentMap = null
+                        }
                         "$prefix ゲームを終了しました"
                     } catch (e: Throwable) {
+                        e.printStackTrace()
                         "$prefix ${ChatColor.RED}ゲーム終了に失敗しました (${e.message})"
                     }
                 )

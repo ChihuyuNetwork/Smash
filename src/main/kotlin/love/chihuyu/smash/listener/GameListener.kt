@@ -8,9 +8,7 @@ import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.game.ScoreboardUpdater
 import love.chihuyu.timerapi.TimerAPI
-import org.bukkit.GameMode
-import org.bukkit.Material
-import org.bukkit.Sound
+import org.bukkit.*
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -39,26 +37,26 @@ object GameListener : Listener {
 
         ScoreboardUpdater.updateAllVelocity()
 
-        val yList = listOf(
-            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-            player.world.getBlockAt(player.location.apply { this.y })
-        )
-        val zList = mapOf(
-            player.world.getBlockAt(player.location.apply { this.z -= .9 }) to yList,
-            player.world.getBlockAt(player.location.apply { this.z }) to yList,
-            player.world.getBlockAt(player.location.apply { this.z += .9 }) to yList
-        )
-
-        fun isNotEmptyAround() = !player.world.getBlockAt(player.location.apply { this.x -= .5 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.z -= .9 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
-
         TimerAPI.build("Smash-Velocity-${player.uniqueId}", 10, 1) {
             tick {
+                val yList = listOf(
+                    player.world.getBlockAt(player.location.apply { this.y += 2 }),
+                    player.world.getBlockAt(player.location.apply { this.y += 1 }),
+                    player.world.getBlockAt(player.location.apply { this.y })
+                )
+                val zList = mapOf(
+                    player.world.getBlockAt(player.location.apply { this.z -= .9 }) to yList,
+                    player.world.getBlockAt(player.location.apply { this.z }) to yList,
+                    player.world.getBlockAt(player.location.apply { this.z += .9 }) to yList
+                )
+
+                fun isNotEmptyAround() = !player.world.getBlockAt(player.location.apply { this.x -= .5 }).isEmpty ||
+                        !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
+                        !player.world.getBlockAt(player.location.apply { this.z -= .9 }).isEmpty ||
+                        !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
+                        !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
+                        !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
+
                 if ((SmashAPI.velocities[player.uniqueId] ?: 0) <= 80 || !isNotEmptyAround()) return@tick
                 mapOf(
                     player.world.getBlockAt(player.location.apply { this.x -= .9 }) to zList,
@@ -82,7 +80,7 @@ object GameListener : Listener {
                     }
                 }
             }
-        }.runAsync()
+        }.run()
     }
 
     @EventHandler
@@ -116,22 +114,32 @@ object GameListener : Listener {
             player.world.playSound(player.location, Sound.EXPLODE, 1f, 1f)
             SmashAPI.velocities[player.uniqueId] = 0
             val killer = SmashAPI.lastAttackers[player.uniqueId] ?: player.uniqueId
-            if (killer != player.uniqueId) {
-                SmashAPI.killCounts[killer] = SmashAPI.killCounts[killer]?.inc() ?: 1
-                SmashAPI.lastAttackers.remove(player.uniqueId)
-                ScoreboardUpdater.updateAllKillCounts()
-                ScoreboardUpdater.updateAllVelocity()
-            }
+            SmashPlugin.server.broadcastMessage(
+                if (killer != player.uniqueId) {
+                    SmashAPI.killCounts[killer] = SmashAPI.killCounts[killer]?.inc() ?: 1
+                    SmashAPI.lastAttackers.remove(player.uniqueId)
+                    "${ChatColor.RED}${Bukkit.getOfflinePlayer(killer).name}${ChatColor.RESET} killed ${ChatColor.RED}${player.name}${ChatColor.RESET}."
+                } else {
+                    "${ChatColor.RED}${player.name}${ChatColor.RESET} died."
+                }
+            )
+            ScoreboardUpdater.updateAllKillCounts()
+            ScoreboardUpdater.updateAllVelocity()
         }
     }
 
     @EventHandler
     fun onJoin(e: PlayerJoinEvent) {
         val player = e.player
-        if (gameTimer == null && !inCountdown) {
+        if (gameTimer == null || !inCountdown) {
             player.teleport(SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world))
         } else {
-            player.teleport((SmashPlugin.config.getConfigurationSection("maps.${SmashAPI.currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random())
+            player.teleport((SmashPlugin.config.getConfigurationSection("maps.${currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random())
+        }
+
+        SmashPlugin.server.onlinePlayers.forEach {
+            player.showPlayer(it)
+            it.showPlayer(player)
         }
     }
 

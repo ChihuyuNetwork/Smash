@@ -4,11 +4,10 @@ import com.sk89q.worldedit.Vector
 import com.sk89q.worldedit.bukkit.BukkitWorld
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
+import com.sk89q.worldedit.function.operation.Operations
 import com.sk89q.worldedit.session.ClipboardHolder
 import love.chihuyu.smash.SmashPlugin.Companion.SmashPlugin
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
-import love.chihuyu.smash.SmashPlugin.Companion.prefix
-import org.bukkit.ChatColor
 import java.io.File
 import java.io.FileInputStream
 
@@ -21,22 +20,19 @@ object SchematicRepair {
         val clipboard = try {
             format!!.getReader(FileInputStream(file)).read(BukkitWorld(SmashPlugin.server.worlds[0]).worldData)
         } catch (e: Throwable) {
-            SmashPlugin.logger.info("$prefix ${ChatColor.RED}スキーマファイルの読み込みに失敗しました")
+            e.printStackTrace()
             return
-        }.apply {
-            val vector = mapsConfig.getVector("maps.$map.center")
-            origin = Vector(vector.x, vector.y, vector.z)
         }
-        val worldedit = SmashPlugin.server.pluginManager.getPlugin("WorldEdit") as WorldEditPlugin
-        ClipboardHolder(clipboard, BukkitWorld(world).worldData)
+        val mapVector = mapsConfig.getVector("maps.$map.center")
+        val worldEditPlugin = WorldEditPlugin.getPlugin(WorldEditPlugin::class.java)
+        val operation = ClipboardHolder(clipboard, BukkitWorld(world).worldData)
             .createPaste(
-                worldedit.createEditSession(
-                    SmashPlugin.server.operators.toList()[0].player
-                ),
+                worldEditPlugin.createEditSession(SmashPlugin.server.onlinePlayers.filter { it.isOnline }[0]),
                 BukkitWorld(world).worldData
-            ).apply {
-                ignoreAirBlocks(true)
-            }
+            )
+            .to(Vector(mapVector.x, mapVector.y, mapVector.z))
+            .ignoreAirBlocks(false)
             .build()
+        Operations.completeBlindly(operation)
     }
 }
