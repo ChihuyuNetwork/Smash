@@ -1,11 +1,13 @@
 package love.chihuyu.smash.listener
 
 import love.chihuyu.smash.SmashAPI
-import love.chihuyu.smash.SmashPlugin
+import love.chihuyu.smash.SmashAPI.currentMap
+import love.chihuyu.smash.SmashPlugin.Companion.SmashPlugin
 import love.chihuyu.smash.SmashPlugin.Companion.gameTimer
 import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
+import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.game.ScoreboardUpdater
-import love.chihuyu.timerapi.timer.Timer
+import love.chihuyu.timerapi.TimerAPI
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -55,32 +57,32 @@ object GameListener : Listener {
             !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
             !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
 
-        Timer("Smash-Velocity-${player.uniqueId}", 10, 1)
-            .tick {
-                if ((SmashAPI.velocities[player.uniqueId] ?: 0) > 50 && isNotEmptyAround()) {
-                    mapOf(
-                        player.world.getBlockAt(player.location.apply { this.x -= .9 }) to zList,
-                        player.world.getBlockAt(player.location.apply { this.x += .9 }) to zList
-                    ).forEach { (xBlock, z) ->
-                        if (!xBlock.isEmpty) {
-                            xBlock.type = Material.AIR
+        TimerAPI.build("Smash-Velocity-${player.uniqueId}", 10, 1) {
+            tick {
+                if ((SmashAPI.velocities[player.uniqueId] ?: 0) <= 80 || !isNotEmptyAround()) return@tick
+                mapOf(
+                    player.world.getBlockAt(player.location.apply { this.x -= .9 }) to zList,
+                    player.world.getBlockAt(player.location.apply { this.x += .9 }) to zList
+                ).forEach { (xBlock, z) ->
+                    if (!xBlock.isEmpty) {
+                        xBlock.type = Material.AIR
+                        player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
+                    }
+                    z.forEach { (zBlock, y) ->
+                        if (!zBlock.isEmpty) {
+                            zBlock.type = Material.AIR
                             player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
                         }
-                        z.forEach { (zBlock, y) ->
-                            if (!zBlock.isEmpty) {
-                                zBlock.type = Material.AIR
+                        y.forEach { yBlock ->
+                            if (!yBlock.isEmpty) {
+                                yBlock.type = Material.AIR
                                 player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
-                            }
-                            y.forEach { yBlock ->
-                                if (!yBlock.isEmpty) {
-                                    yBlock.type = Material.AIR
-                                    player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
-                                }
                             }
                         }
                     }
                 }
-            }.runAsync()
+            }
+        }.runAsync()
     }
 
     @EventHandler
@@ -109,7 +111,8 @@ object GameListener : Listener {
         }
 
         if (player.location.y <= 0) {
-            player.teleport((SmashPlugin.mapsConfig.getConfigurationSection("maps.${SmashAPI.currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random())
+            val spawn = if (currentMap != null) (mapsConfig.getConfigurationSection("maps.${currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random() else SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world)
+            player.teleport(spawn)
             player.world.playSound(player.location, Sound.EXPLODE, 1f, 1f)
             SmashAPI.velocities[player.uniqueId] = 0
             val killer = SmashAPI.lastAttackers[player.uniqueId] ?: player.uniqueId
@@ -126,9 +129,9 @@ object GameListener : Listener {
     fun onJoin(e: PlayerJoinEvent) {
         val player = e.player
         if (gameTimer == null && !inCountdown) {
-            player.teleport(SmashPlugin.SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world))
+            player.teleport(SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world))
         } else {
-            player.teleport((SmashPlugin.mapsConfig.getConfigurationSection("maps.${SmashAPI.currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random())
+            player.teleport((SmashPlugin.config.getConfigurationSection("maps.${SmashAPI.currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random())
         }
     }
 

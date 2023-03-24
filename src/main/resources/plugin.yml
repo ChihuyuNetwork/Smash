@@ -1,6 +1,9 @@
 name: @name@
 main: @mainPackage@
 version: 1
+depend:
+  - TimerAPI
+  - WorldEdit
 commands:
 
   smash:

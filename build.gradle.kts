@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
-    compileOnly("love.chihuyu:TimerAPI:1.1.0")
+    compileOnly("love.chihuyu:TimerAPI:1.2.1-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-core:6.1.4-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:6.1.4-SNAPSHOT")
     implementation("org.yaml:snakeyaml:2.0")
@@ -69,7 +69,7 @@ publishing {
         maven {
             name = "repo"
             credentials(PasswordCredentials::class)
-            url = uri("https://repo.hirosuke.me/repository/maven-central/")
+            url = uri("https://repo.hirosuke.me/repository/maven-releases/")
         }
     }
 

@@ -7,7 +7,7 @@ import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.SmashPlugin.Companion.prefix
 import love.chihuyu.smash.game.SchematicRepair
-import love.chihuyu.timerapi.timer.Timer
+import love.chihuyu.timerapi.TimerAPI
 import org.bukkit.ChatColor
 import org.bukkit.GameMode
 import org.bukkit.Sound
@@ -30,15 +30,15 @@ object SmashCommand : Command("smash") {
                         if (map.getList("spawns").isEmpty()) "$prefix ${ChatColor.RED}スポーン地点が設定されていません"
                         if (map.getVector("center") == null) "$prefix ${ChatColor.RED}マップの中心が設定されていません"
 
-                        gameTimer = Timer("Smash-Game", SmashPlugin.config.getLong("gameDuration"), 20)
-                            .start {
+                        gameTimer = TimerAPI.build("Smash-Game", 180, 20) {
+                            start {
                                 inCountdown = false
                                 SmashPlugin.server.broadcastMessage("$prefix ${ChatColor.BOLD}Game Start")
                                 SmashPlugin.server.onlinePlayers.forEach {
                                     it.maximumNoDamageTicks = if (SmashPlugin.config.getBoolean("nodelay")) 0 else 20
                                 }
                             }
-                            .tick {
+                            tick {
                                 val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                                 mainScoreboard.getObjective(DisplaySlot.SIDEBAR)?.unregister()
                                 val objective = mainScoreboard.registerNewObjective("${ChatColor.GOLD}${ChatColor.BOLD}   Smash   ", "").apply {
@@ -49,16 +49,16 @@ object SmashCommand : Command("smash") {
                                 objective.getScore("残り時間 ${(duration - elapsed).floorDiv(60)}:${"%02d".format((duration - elapsed) % 60)}").score = 2
                                 objective.getScore(" ").score = 3
                             }
-                            .end {
+                            end {
                                 val scores = mutableMapOf<Int, String>()
                                 SmashPlugin.server.onlinePlayers.forEach {
                                     val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                                     mainScoreboard.getObjective(DisplaySlot.BELOW_NAME)?.unregister()
                                     val score = (
-                                        mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
-                                            displaySlot = DisplaySlot.PLAYER_LIST
-                                        }
-                                        ).getScore(it.name)
+                                            mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
+                                                displaySlot = DisplaySlot.PLAYER_LIST
+                                            }
+                                            ).getScore(it.name)
                                     scores[score.score] = score.entry
                                     SmashAPI.velocities[it.uniqueId] = 0
                                     SmashAPI.killCounts[it.uniqueId] = 0
@@ -70,42 +70,50 @@ object SmashCommand : Command("smash") {
                                 SmashPlugin.server.broadcastMessage("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！")
                                 gameTimer = null
                             }
+                        }
 
-                        Timer("Smash-Countdown", 6, 20)
-                            .start {
+                        TimerAPI.build("Smash-Countdown", 6, 20) {
+                            start {
                                 SmashPlugin.server.onlinePlayers.forEachIndexed { index, player ->
                                     val mainScoreboard = SmashPlugin.server.scoreboardManager.mainScoreboard
                                     (
-                                        mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
-                                            displaySlot = DisplaySlot.PLAYER_LIST
-                                        }
-                                        ).getScore(player.name).score = 0
+                                            mainScoreboard.getObjective(DisplaySlot.PLAYER_LIST) ?: mainScoreboard.registerNewObjective("smash-kills", "").apply {
+                                                displaySlot = DisplaySlot.PLAYER_LIST
+                                            }
+                                            ).getScore(player.name).score = 0
                                     SmashAPI.currentMap = args[1]
                                     player.teleport((map.getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(sender.world) }.random())
                                     player.gameMode = GameMode.SURVIVAL
                                 }
                                 inCountdown = true
                             }
-                            .tick {
+                            tick {
                                 SmashPlugin.server.onlinePlayers.forEach {
                                     it.playSound(it.location, Sound.ORB_PICKUP, 1f, 1f)
                                 }
                                 if (elapsed != 6L) SmashPlugin.server.broadcastMessage("$prefix ${ChatColor.BOLD}${duration - elapsed}")
                             }
-                            .end {
+                            end {
                                 gameTimer!!.run()
-                            }.run()
+                            }
+                        }.run()
 
                         "$prefix ゲームを開始しました"
                     } catch (e: Throwable) {
-                        "$prefix ${ChatColor.RED}ゲーム開始に失敗しました"
+                        e.printStackTrace()
+                        "$prefix ${ChatColor.RED}ゲーム開始に失敗しました (${e.message})"
                     }
                 )
             }
             "end" -> {
-                if (gameTimer == null) "$prefix ${ChatColor.RED}ゲームは開始されていません"
-                gameTimer!!.kill()
-                gameTimer = null
+                sender.sendMessage(try {
+                    if (gameTimer == null) "$prefix ${ChatColor.RED}ゲームは開始されていません"
+                    gameTimer!!.kill()
+                    gameTimer = null
+                    "$prefix ゲームを終了しました"
+                } catch (e: Throwable) {
+                    "$prefix ${ChatColor.RED}ゲーム終了に失敗しました (${e.message})"
+                })
             }
         }
     }
