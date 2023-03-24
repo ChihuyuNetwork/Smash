@@ -37,7 +37,7 @@ object GameListener : Listener {
 
         ScoreboardUpdater.updateAllVelocity()
 
-        TimerAPI.build("Smash-Velocity-${player.uniqueId}", 10, 1) {
+        TimerAPI.build("Smash-Velocity-${player.uniqueId}", 20, 1) {
             tick {
                 val yList = listOf(
                     player.world.getBlockAt(player.location.apply { this.y += 2 }),
