@@ -8,7 +8,11 @@ import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.game.ScoreboardUpdater
 import love.chihuyu.timerapi.TimerAPI
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.ChatColor
+import org.bukkit.GameMode
+import org.bukkit.Sound
+import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -31,54 +35,15 @@ object GameListener : Listener {
         val player = e.entity as? Player ?: return
         val damager = e.damager
 
+        e.damage = .0
         SmashAPI.velocities[player.uniqueId] = SmashAPI.velocities[player.uniqueId]?.plus(nextInt(4, 10)) ?: 5
         player.velocity = damager.location.direction.multiply((SmashAPI.velocities[player.uniqueId] ?: 1) / 50.0).setY(0.5)
         SmashAPI.lastAttackers[player.uniqueId] = damager.uniqueId
 
         ScoreboardUpdater.updateAllVelocity()
-
-        TimerAPI.build("Smash-Velocity-${player.uniqueId}", 16, 1, 1) {
+        if ((SmashAPI.velocities[player.uniqueId] ?: 0) > 70 && SmashAPI.isNotEmptyAround(player) && gameTimer != null) TimerAPI.build("Smash-Break", 16, 1) {
             tick {
-                val yList = listOf(
-                    player.world.getBlockAt(player.location.apply { this.y += 2 }),
-                    player.world.getBlockAt(player.location.apply { this.y += 1 }),
-                    player.world.getBlockAt(player.location.apply { this.y })
-                )
-                val zList = mapOf(
-                    player.world.getBlockAt(player.location.apply { this.z -= .9 }) to yList,
-                    player.world.getBlockAt(player.location.apply { this.z }) to yList,
-                    player.world.getBlockAt(player.location.apply { this.z += .9 }) to yList
-                )
-
-                fun isNotEmptyAround() = !player.world.getBlockAt(player.location.apply { this.x -= .5 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.z -= .9 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
-                        !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
-
-                if ((SmashAPI.velocities[player.uniqueId] ?: 0) <= 80 || !isNotEmptyAround()) return@tick
-                mapOf(
-                    player.world.getBlockAt(player.location.apply { this.x -= .9 }) to zList,
-                    player.world.getBlockAt(player.location.apply { this.x += .9 }) to zList
-                ).forEach { (xBlock, z) ->
-                    if (!xBlock.isEmpty) {
-                        xBlock.type = Material.AIR
-                        player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
-                    }
-                    z.forEach { (zBlock, y) ->
-                        if (!zBlock.isEmpty) {
-                            zBlock.type = Material.AIR
-                            player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
-                        }
-                        y.forEach { yBlock ->
-                            if (!yBlock.isEmpty) {
-                                yBlock.type = Material.AIR
-                                player.world.playSound(player.location, Sound.ZOMBIE_WOODBREAK, 1f, 1f)
-                            }
-                        }
-                    }
-                }
+                SmashAPI.breakAroundBlocks(player)
             }
         }.run()
     }
@@ -100,6 +65,39 @@ object GameListener : Listener {
             } else {
                 player.velocity = player.velocity.add(Vector(.0, .01, .0))
             }
+        }
+
+        val yBlockList = mutableListOf<Block>()
+        repeat(4) {
+            yBlockList += player.world.getBlockAt(player.location.apply { y -= it })
+        }
+        if (player.isSneaking && yBlockList.none { !it.isEmpty } && player.gameMode != GameMode.CREATIVE && player.gameMode != GameMode.SPECTATOR && gameTimer != null) {
+            player.isSneaking = false
+            player.velocity = player.velocity.add(Vector(.0, -1.0, .0))
+            player.world.playSound(player.location, Sound.ENDERDRAGON_WINGS, .5f, 1f)
+
+            if (!SmashAPI.isNotEmptyAround(player)) return
+            TimerAPI.build("Smash-HipDrop", 30, 1, 0) {
+                tick {
+
+                    if (!player.world.getBlockAt(player.location.apply { y -= .1 }).isEmpty) {
+                        player.getNearbyEntities(3.0, 2.5 ,3.0).forEach { hitted ->
+                            if (hitted !is Player) return@forEach
+                            SmashAPI.velocities[hitted.uniqueId] = SmashAPI.velocities[hitted.uniqueId]?.plus(nextInt(4, 10)) ?: 5
+                            hitted.velocity = hitted.location.direction.multiply(-(SmashAPI.velocities[hitted.uniqueId] ?: 1) / 50.0).setY(0.5)
+                            SmashAPI.lastAttackers[hitted.uniqueId] = player.uniqueId
+
+                            ScoreboardUpdater.updateAllVelocity()
+                            if ((SmashAPI.velocities[hitted.uniqueId] ?: 0) > 70 && SmashAPI.isNotEmptyAround(hitted) && gameTimer != null) TimerAPI.build("Smash-Break", 16, 1) {
+                                tick {
+                                    SmashAPI.breakAroundBlocks(hitted)
+                                }
+                            }.run()
+                        }
+                        kill()
+                    }
+                }
+            }.run()
         }
 
         if (!player.world.getBlockAt(player.location.apply { this.y -= .1 }).isEmpty && player.uniqueId in SmashAPI.doubleJumpCooltimed) {
