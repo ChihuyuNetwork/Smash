@@ -19,7 +19,7 @@ import org.bukkit.util.Vector
 
 object SmashCommand : Command("smash") {
     override fun onCommand(sender: CommandSender, label: String, args: Array<out String>) {
-        if (sender !is Player || !sender.hasPermission("smash.command.smash") || args.size > 2) return
+        if (sender !is Player || !sender.hasPermission("smash.command.smash") || args.isEmpty()) return
 
         when (args[0]) {
             "start" -> {
@@ -75,7 +75,7 @@ object SmashCommand : Command("smash") {
 
                         TimerAPI.build("Smash-Countdown", 6, 20) {
                             start {
-                                SmashPlugin.server.onlinePlayers.forEachIndexed { index, player ->
+                                SmashPlugin.server.onlinePlayers.forEach { player ->
                                     SmashPlugin.server.onlinePlayers.forEach {
                                         player.showPlayer(it)
                                         it.showPlayer(player)
