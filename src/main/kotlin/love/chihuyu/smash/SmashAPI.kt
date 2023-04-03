@@ -15,27 +15,28 @@ object SmashAPI {
     var currentMap: String? = null
 
     fun isNotEmptyAround(player: Player) = !player.world.getBlockAt(player.location.apply { this.x -= .5 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.z -= .9 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.x += .9 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.y += 1 }).isEmpty ||
-            !player.world.getBlockAt(player.location.apply { this.y += 2 }).isEmpty
+            !player.world.getBlockAt(player.location.apply { x += .9 }).isEmpty ||
+            !player.world.getBlockAt(player.location.apply { z -= .9 }).isEmpty ||
+            !player.world.getBlockAt(player.location.apply { x += .9 }).isEmpty ||
+            !player.world.getBlockAt(player.location.apply { y += 1 }).isEmpty ||
+            !player.world.getBlockAt(player.location.apply { y += 2 }).isEmpty
 
     fun breakAroundBlocks(player: Player) {
         val yList = listOf(
-            player.world.getBlockAt(player.location.apply { this.y += 2 }),
-            player.world.getBlockAt(player.location.apply { this.y += 1 }),
-            player.world.getBlockAt(player.location.apply { this.y += .1 }),
+            player.world.getBlockAt(player.location.apply { y += 2 }),
+            player.world.getBlockAt(player.location.apply { y += 1 }),
+            player.world.getBlockAt(player.location.apply { y }),
+            player.world.getBlockAt(player.location.apply { y -= .5 }),
         )
         val zList = mapOf(
-            player.world.getBlockAt(player.location.apply { this.z -= .9 }) to yList,
-            player.world.getBlockAt(player.location.apply { this.z }) to yList,
-            player.world.getBlockAt(player.location.apply { this.z += .9 }) to yList
+            player.world.getBlockAt(player.location.apply { z -= .9 }) to yList,
+            player.world.getBlockAt(player.location.apply { z }) to yList,
+            player.world.getBlockAt(player.location.apply { z += .9 }) to yList
         )
 
         mapOf(
-            player.world.getBlockAt(player.location.apply { this.x -= .9 }) to zList,
-            player.world.getBlockAt(player.location.apply { this.x += .9 }) to zList
+            player.world.getBlockAt(player.location.apply { x -= .9 }) to zList,
+            player.world.getBlockAt(player.location.apply { x += .9 }) to zList
         ).forEach { (xBlock, z) ->
             if (!xBlock.isEmpty && SmashPlugin.gameTimer != null) {
                 xBlock.type = Material.AIR

@@ -65,9 +65,10 @@ object SmashCommand : Command("smash") {
                                     SmashAPI.killCounts[it.uniqueId] = 0
                                     it.teleport(SmashPlugin.config.getVector("lobby-spawn").toLocation(sender.world))
                                     it.playSound(it.location, Sound.LEVEL_UP, .7f, 1f)
+                                    it.gameMode = GameMode.ADVENTURE
                                 }
                                 SchematicRepair.recovery(args[1])
-                                SmashAPI.currentMap = null
+                                currentMap = null
                                 SmashPlugin.server.broadcastMessage("$prefix ${scores.toList().sortedByDescending { it.first }[0].second}の勝利！")
                                 gameTimer = null
                             }

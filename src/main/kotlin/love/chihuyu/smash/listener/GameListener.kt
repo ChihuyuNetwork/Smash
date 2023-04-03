@@ -7,6 +7,7 @@ import love.chihuyu.smash.SmashPlugin.Companion.gameTimer
 import love.chihuyu.smash.SmashPlugin.Companion.inCountdown
 import love.chihuyu.smash.SmashPlugin.Companion.mapsConfig
 import love.chihuyu.smash.game.ScoreboardUpdater
+import love.chihuyu.smash.utils.PlayerUtils
 import love.chihuyu.timerapi.TimerAPI
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
@@ -109,6 +110,7 @@ object GameListener : Listener {
         if (player.location.y <= 0) {
             val spawn = if (currentMap != null) (mapsConfig.getConfigurationSection("maps.$currentMap").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random() else SmashPlugin.config.getVector("lobby-spawn").toLocation(player.world)
             player.teleport(spawn)
+            PlayerUtils.showAllPlayer(player)
             player.world.playSound(player.location, Sound.EXPLODE, 1f, 1f)
             SmashAPI.velocities[player.uniqueId] = 0
             val killer = SmashAPI.lastAttackers[player.uniqueId] ?: player.uniqueId
@@ -135,10 +137,7 @@ object GameListener : Listener {
             player.teleport((SmashPlugin.config.getConfigurationSection("maps.${currentMap}").getList("spawns") as List<Vector>).map { spawn -> spawn.toLocation(player.world) }.random())
         }
 
-        SmashPlugin.server.onlinePlayers.forEach {
-            player.showPlayer(it)
-            it.showPlayer(player)
-        }
+        PlayerUtils.showAllPlayer(player)
     }
 
     @EventHandler
